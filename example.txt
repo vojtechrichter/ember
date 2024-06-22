@@ -1,0 +1,27 @@
+parent template[parent.em]:
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="public/styles/main.css">
+        <title>Ember</title>
+    </head>
+
+    <body>
+        $content$
+    </body>
+</html>
+
+child template[child1.em]:
+
+$inherit('parent.em')
+
+$content
+   <p>hello, ember</p>
+$/content
+
+usage:
+
+handle := ember.init(response_writer)
+err := handle.render('child1.em', {"name": "John Doe"})
