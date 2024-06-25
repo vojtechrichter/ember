@@ -9,17 +9,17 @@ parent template[parent.em]:
     </head>
 
     <body>
-        $content$
+        $use_block(content)
     </body>
 </html>
 
 child template[child1.em]:
 
-$inherit('parent.em')
+$inherit(parent.em)
 
-$content
+$block(content)
    <p>hello, ember</p>
-$/content
+$/block
 
 usage:
 
