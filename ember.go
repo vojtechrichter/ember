@@ -9,12 +9,28 @@ func ReadTemplate(name string) ([]byte, error) {
 	return os.ReadFile(name)
 }
 
+const (
+	TOKEN_TYPE_SINGLE = iota
+	TOKEN_TYPE_DOUBLE = iota
+)
+
+type Token struct {
+	name      string
+	length    uintptr
+	tokenType int
+}
+
 func TokenizeTemplate(template []byte) []string {
+	tokens := make([]Token, len(template))
 	for i := 0; i < len(template); i++ {
 		switch template[i] {
 		case '$':
 			{
-				fmt.Println("ID")
+				tokens = append(tokens, Token{
+					name:      "OP_TAG_SYMBOL",
+					length:    1,
+					tokenType: TOKEN_TYPE_SINGLE,
+				})
 				// split
 				i += 1
 				id := make([]byte, 10)
