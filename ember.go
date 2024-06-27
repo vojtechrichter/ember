@@ -15,50 +15,58 @@ const (
 )
 
 type Token struct {
-	name      string
-	length    uintptr
-	tokenType int
+	name string
 }
 
-func TokenizeTemplate(template []byte) []string {
-	tokens := make([]Token, len(template))
+func TokenizeTemplate(template []byte) []Token {
+	tokens := make([]Token, 0)
+
+	openTag := false
+	lastOpTag := make([]byte, 1<<4)
 	for i := 0; i < len(template); i++ {
 		switch template[i] {
 		case '$':
 			{
-				tokens = append(tokens, Token{
-					name:      "OP_TAG_SYMBOL",
-					length:    1,
-					tokenType: TOKEN_TYPE_SINGLE,
-				})
-				// split
-				i += 1
-				id := make([]byte, 10)
+				if !openTag {
+					i += 1
+					if len(lastOpTag) > 0 || cap(lastOpTag) > 0 {
+						lastOpTag = nil
+					}
+					for ; i < len(template) && template[i] != '('; i++ {
+						if template[i+1] == '(' {
+							openTag = true
+						}
+						lastOpTag = append(lastOpTag, template[i])
+					}
+					tokenName := "OPEN_TAG{" + string(lastOpTag) + "}"
+					tokens = append(tokens, Token{
+						name: tokenName,
+					})
+				}
 
-				// split
+				i += 1
+
 				switch template[i] {
 				case '/':
 					{
-						fmt.Println("CLOSE_ID")
-					}
-				}
-
-				// split
-				for ; i < len(template) && template[i] != '('; i++ {
-					id = append(id, template[i])
-				}
-
-				switch string(id) {
-				case "block":
-					{
-						fmt.Println("BLOCK")
+						tokenName := "CLOSE_TAG{" + string(lastOpTag) + "}"
+						tokens = append(tokens, Token{
+							name: tokenName,
+						})
+						openTag = false
 					}
 				}
 			}
+			//default:
+			//	{
+			//		tokens = append(tokens, Token{
+			//			name: "HTML_CONTENT",
+			//		})
+			//	}
 		}
 	}
 
-	return nil
+	return tokens
 }
 
 func main() {
@@ -67,5 +75,8 @@ func main() {
 		panic(err)
 	}
 
-	TokenizeTemplate(file)
+	tokens := TokenizeTemplate(file)
+	for _, v := range tokens {
+		fmt.Println(v.name)
+	}
 }
