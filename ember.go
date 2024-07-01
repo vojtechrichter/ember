@@ -4,16 +4,6 @@ import (
 	"fmt"
 	"github.com/vojtechrichter/ember/lex"
 	"log"
-	"os"
-)
-
-func ReadTemplate(name string) ([]byte, error) {
-	return os.ReadFile(name)
-}
-
-const (
-	TOKEN_TYPE_SINGLE = iota
-	TOKEN_TYPE_DOUBLE = iota
 )
 
 type Token struct {
@@ -25,7 +15,7 @@ func TokenizeTemplate(lex *lex.Lexer) []Token {
 
 	openTag := false
 	lastOpenTag := make([]byte, 1<<4)
-	for ; lex.Idx < lex.TemplateSize; lex.Advance() {
+	for ; lex.Idx < lex.TemplateSize-1; lex.Advance() {
 		switch lex.CurrentChar {
 		case '$':
 			{
@@ -72,10 +62,12 @@ func TokenizeTemplate(lex *lex.Lexer) []Token {
 }
 
 func main() {
-	lex, err := lex.LexerInit("template.em")
+	lexer, err := lex.LexerInit("template.em")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	tokens := TokenizeTemplate(lexer)
 
 	for _, v := range tokens {
 		fmt.Println(v.name)
