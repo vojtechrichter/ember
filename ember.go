@@ -57,7 +57,7 @@ func TokenizeTemplate(lex *lex.Lexer) map[Token]byte {
 }
 
 func main() {
-	lexer, err := lex.LexerInit("template.em")
+	lexer, err := lex.LexerInit("template.eb")
 	if err != nil {
 		log.Fatal(err)
 	}
