@@ -10,11 +10,12 @@ type Token struct {
 	name string
 }
 
-func TokenizeTemplate(lex *lex.Lexer) []Token {
-	tokens := make([]Token, 0)
+func TokenizeTemplate(lex *lex.Lexer) map[Token]byte {
+	tokens := make(map[Token]byte)
 
 	openTag := false
 	lastOpenTag := make([]byte, 1<<4)
+
 	for ; lex.Idx < lex.TemplateSize-1; lex.Advance() {
 		switch lex.CurrentChar {
 		case '$':
@@ -31,9 +32,7 @@ func TokenizeTemplate(lex *lex.Lexer) []Token {
 						lastOpenTag = append(lastOpenTag, lex.CurrentChar)
 					}
 					tokenName := "OPEN_TAG{" + string(lastOpenTag) + "}"
-					tokens = append(tokens, Token{
-						name: tokenName,
-					})
+					tokens[Token{name: tokenName}] = lex.CurrentChar
 				}
 
 				lex.Advance()
@@ -42,19 +41,15 @@ func TokenizeTemplate(lex *lex.Lexer) []Token {
 				case '/':
 					{
 						tokenName := "CLOSE_TAG{" + string(lastOpenTag) + "}"
-						tokens = append(tokens, Token{
-							name: tokenName,
-						})
+						tokens[Token{name: tokenName}] = lex.CurrentChar
 						openTag = false
 					}
 				}
 			}
-			//default:
-			//	{
-			//		tokens = append(tokens, Token{
-			//			name: "HTML_CONTENT",
-			//		})
-			//	}
+		default:
+			{
+				tokens[Token{name: "HTML_CONTENT"}] = lex.CurrentChar
+			}
 		}
 	}
 
@@ -69,7 +64,7 @@ func main() {
 
 	tokens := TokenizeTemplate(lexer)
 
-	for _, v := range tokens {
-		fmt.Println(v.name)
+	for k, v := range tokens {
+		fmt.Printf("token: %s, value: %s\n", k.name, string(v))
 	}
 }
