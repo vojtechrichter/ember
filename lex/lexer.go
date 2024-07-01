@@ -3,41 +3,41 @@ package lex
 import "os"
 
 type Lexer struct {
-	templateName    string
-	templateContent []byte
-	templateSize    int
+	TemplateName    string
+	TemplateContent []byte
+	TemplateSize    int
 
-	idx         uintptr
-	currentChar byte
+	Idx         int
+	CurrentChar byte
 }
 
 func LexerInit(templateName string) (*Lexer, error) {
 	lexer := new(Lexer)
-	lexer.templateName = templateName
+	lexer.TemplateName = templateName
 
 	content, err := os.ReadFile(templateName)
 	if err != nil {
 		return lexer, err
 	}
-	lexer.templateContent = content
-	lexer.templateSize = len(content)
+	lexer.TemplateContent = content
+	lexer.TemplateSize = len(content)
 
-	lexer.idx = 0
-	lexer.currentChar = lexer.templateContent[lexer.idx]
+	lexer.Idx = 0
+	lexer.CurrentChar = lexer.TemplateContent[lexer.Idx]
 
 	return lexer, nil
 }
 
 func (l *Lexer) Advance() {
-	l.idx += 1
-	l.currentChar = l.templateContent[l.idx]
+	l.Idx += 1
+	l.CurrentChar = l.TemplateContent[l.Idx]
 }
 
-func (l *Lexer) AdvanceBy(n uintptr) {
-	l.idx += n
-	l.currentChar = l.templateContent[l.idx]
+func (l *Lexer) AdvanceBy(n int) {
+	l.Idx += n
+	l.CurrentChar = l.TemplateContent[l.Idx]
 }
 
-func (l *Lexer) Peek(pos uintptr) byte {
-	return l.templateContent[pos]
+func (l *Lexer) PeekBy(pos int) byte {
+	return l.TemplateContent[l.Idx+pos]
 }

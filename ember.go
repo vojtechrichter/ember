@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/vojtechrichter/ember/lex"
+	"log"
 	"os"
 )
 
@@ -18,38 +20,38 @@ type Token struct {
 	name string
 }
 
-func TokenizeTemplate(template []byte) []Token {
+func TokenizeTemplate(lex *lex.Lexer) []Token {
 	tokens := make([]Token, 0)
 
 	openTag := false
-	lastOpTag := make([]byte, 1<<4)
-	for i := 0; i < len(template); i++ {
-		switch template[i] {
+	lastOpenTag := make([]byte, 1<<4)
+	for ; lex.Idx < lex.TemplateSize; lex.Advance() {
+		switch lex.CurrentChar {
 		case '$':
 			{
 				if !openTag {
-					i += 1
-					if len(lastOpTag) > 0 || cap(lastOpTag) > 0 {
-						lastOpTag = nil
+					lex.Advance()
+					if len(lastOpenTag) > 0 || cap(lastOpenTag) > 0 {
+						lastOpenTag = nil
 					}
-					for ; i < len(template) && template[i] != '('; i++ {
-						if template[i+1] == '(' {
+					for ; lex.Idx < lex.TemplateSize && lex.CurrentChar != '('; lex.Advance() {
+						if lex.PeekBy(1) == '(' {
 							openTag = true
 						}
-						lastOpTag = append(lastOpTag, template[i])
+						lastOpenTag = append(lastOpenTag, lex.CurrentChar)
 					}
-					tokenName := "OPEN_TAG{" + string(lastOpTag) + "}"
+					tokenName := "OPEN_TAG{" + string(lastOpenTag) + "}"
 					tokens = append(tokens, Token{
 						name: tokenName,
 					})
 				}
 
-				i += 1
+				lex.Advance()
 
-				switch template[i] {
+				switch lex.CurrentChar {
 				case '/':
 					{
-						tokenName := "CLOSE_TAG{" + string(lastOpTag) + "}"
+						tokenName := "CLOSE_TAG{" + string(lastOpenTag) + "}"
 						tokens = append(tokens, Token{
 							name: tokenName,
 						})
@@ -70,12 +72,11 @@ func TokenizeTemplate(template []byte) []Token {
 }
 
 func main() {
-	file, err := ReadTemplate("template.em")
+	lex, err := lex.LexerInit("template.em")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	tokens := TokenizeTemplate(file)
 	for _, v := range tokens {
 		fmt.Println(v.name)
 	}
